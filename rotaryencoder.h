@@ -73,20 +73,20 @@
 
 struct encoder
 {
-	char *label ;                   // name or label as "Volume" or "Balance" or "Treble", etc...
-	int pin_a ;                     // which GPIO received the A pin from the rotary encoder
-	int pin_b ;                     // which GPIO received the B pin from the rotary encoder
-	unsigned char sequence ; 		    // rotary encoder sends a complete 4 steps sequence (full cycle) or 1/4 cycle only per detent
-	unsigned char reverse ; 		    // encoder much count or rotate in reverse 
-	unsigned char looping ;		      // looping from one end to other when value limits are reached, from high_Limit to low_Limit and reverse
-	long int low_Limit ;            // max lowerst value, could be negative
-	long int high_Limit ;           // max higherst value, could be negative
-	volatile long int value ; 		  // used to drive your solution, can be the starting default value or something in memory somewhere
-	volatile long int lastEncoded ; // memo to compare 2 consecutive steps binary values, don't modify
-	unsigned long int pause ; 		  // pause time between gaps to reset rotary encoder speed level, in microsecondes
-	int speed_Level_Threshold_2 ;	  // second speed shift level threshold value
-	int speed_Level_Threshold_3 ;	  // third speed level threshold value
-	int speed_Level_Threshold_4 ;	  // fourth speed level threshold value
+	char *label 			// name or label as "Volume" or "Balance" or "Treble", etc...
+	int pin_a 			// which GPIO received the A pin from the rotary encoder
+	int pin_b 			// which GPIO received the B pin from the rotary encoder
+	unsigned char sequence ;	// rotary encoder sends a complete 4 steps sequence (full cycle) or 1/4 cycle only per detent
+	unsigned char reverse 		// encoder much count or rotate in reverse 
+	unsigned char looping ;		// looping from one end to other when value limits are reached, from high_Limit to low_Limit and reverse
+	long int low_Limit 		// max lowerst value, could be negative
+	long int high_Limit 		// max higherst value, could be negative
+	volatile long int value 	// used to drive your solution, can be the starting default value or something in memory somewhere
+	volatile long int lastEncoded 	// memo to compare 2 consecutive steps binary values, don't modify
+	unsigned long int pause 	// pause time between gaps to reset rotary encoder speed level, in microsecondes
+	int speed_Level_Threshold_2 ;	// second speed shift level threshold value
+	int speed_Level_Threshold_3 ;	// third speed level threshold value
+	int speed_Level_Threshold_4 ;	// fourth speed level threshold value
 	int speed_Level_Multiplier_2 ;	// second speed level multiplier value
 	int speed_Level_Multiplier_3 ;	// third speed level multiplier value
 	int speed_Level_Multiplier_4 ;	// fourth speed level multiplier value
