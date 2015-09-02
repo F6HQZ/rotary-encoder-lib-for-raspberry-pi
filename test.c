@@ -54,6 +54,8 @@
   * Not beautifull, but efficient to check the library, the components
   * and your wiring. ;-)  Each switch must be at ground during the "ON",
   * pullup resistors are programmed inside the GPIO, don't add them.
+  * The schematic diagram, if needed, is here : 
+  * http://www.hamwlan.net//images/rotaryencoder/schematic diagram.png
   * Enjoy !
   */
 
