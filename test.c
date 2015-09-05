@@ -48,14 +48,12 @@
  /*
   * At starting, the LEDs will be enlighted (ON) few seconds for check,
   * then a full list of rotary encoders parameters/caracteristics will
-  * be displayed; axial puxh buttons included if any.
+  * be displayed, and axial push buttons included if any.
   * Then, two lines will be displayed reporting all the values status.
   * Each modification of any will display two new lines of status.
   * Not beautifull, but efficient to check the library, the components
   * and your wiring. ;-)  Each switch must be at ground during the "ON",
   * pullup resistors are programmed inside the GPIO, don't add them.
-  * The schematic diagram, if needed, is here : 
-  * http://www.hamwlan.net//images/rotaryencoder/schematic_diagram.png
   * Enjoy !
   */
 
@@ -64,14 +62,14 @@
 
 #include "rotaryencoder.c"
 
-#define	ON	1
-#define	OFF	0
-#define UP	1
-#define DOW	0
-#define YES	1
-#define NO	0
-#define OUI	1
-#define	NON	0
+#define	ON		1
+#define	OFF		0
+#define UP 		1
+#define DOWN 	0
+#define YES 	1
+#define NO 		0
+#define OUI		1
+#define	NON		0
 
 // used GPIO for 2 UP/DOWN monitor flashing LEDs (arbitrary, you can change as desired)
 #define	LED_DOWN	25
@@ -95,15 +93,15 @@ int main(void)
 	enlighted for 2 sec at starting to check them, 
 	then when moving values up or down 
 */
-	pinMode (25,OUTPUT) ;		// output to drive LED
-	pinMode (29,OUTPUT) ;		// output to drive LED
-	digitalWrite (25,ON) ;		// ON
-	digitalWrite (29,ON) ;		// ON
-	pinMode (PWM_LED, PWM_OUTPUT) ;	// pin 1 is the only one PWM capable pin on RapsberryPi pcb
-	pinMode (PWM_LED,1024) ;	// Max bright value at starting
-	delay (2000) ;			// mS
-	digitalWrite (25,OFF) ;		// OFF
-	digitalWrite (29,OFF) ;		// OFF
+	pinMode (25,OUTPUT) ;			// output to drive LED
+	pinMode (29,OUTPUT) ;			// output to drive LED
+	digitalWrite (25,ON) ;			// ON
+	digitalWrite (29,ON) ;			// ON
+	pinMode (PWM_LED, PWM_OUTPUT) ; // pin 1 is the only one PWM capable pin on RapsberryPi pcb
+	pinMode (PWM_LED,1024) ; 		// Max bright value at starting
+	delay (2000) ;					// mS
+	digitalWrite (25,OFF) ;			// OFF
+	digitalWrite (29,OFF) ;			// OFF
  
 /*
  *  Please, see variables meaning in the rotaryencoder.c and rotaryencoder.h files
@@ -117,8 +115,8 @@ int main(void)
 	
 	// axial buttons (or any button) are there :
 	struct button *button = 
-	setupbutton("LUMIERE",7,1) ;	// pin  7 and ON  at starting
-	setupbutton("GRAVE",21,0) ;	// pin 21 and OFF at starting
+	setupbutton("LUMIERE",7,1) ; 	// pin  7 and ON  at starting
+	setupbutton("GRAVE",21,0) ;		// pin 21 and OFF at starting
 	setupbutton("VOLUME",22,0) ;	// pin 22 and OFF at starting
 	
 	extern numberofencoders ;
@@ -141,8 +139,8 @@ int main(void)
 
 	printf("\n Two LEDs must be connected at #25 and #29 pins if you want to observe the rotation direction (normal or reverse). \n") ;
 	printf(" The positive pin of the LED is to connect to the Raspi output pin, the negative pin of the LED to the minus (the \"ground\" or \"0V\"),\n but a serial resistor of about 1kOhms must be inserted to limit the current.") ;
-	printf("\n The first rotary encoder is used to modify the PWM-LED dim which must be connected on pin #1, not another, which s the only one PWM capable. \n\n") ;
-	printf("\n Some rotary encoders own a push button in their axe to trigger some extra feature, \n as to load or save something in memory, or change the feature to modify, etc... \n\n") ;
+	printf("\n The first rotary encoder is used to modify the PWM-LED dim which must be connected on pin #1, not another, which s the only one PWM capable. \n") ;
+	printf("\n Some rotary encoders own a push button in their axis to trigger some extra feature, \n as to load or save something in memory, or change the feature to modify, etc... \n\n") ;
 	
 	while (1)
 	{
