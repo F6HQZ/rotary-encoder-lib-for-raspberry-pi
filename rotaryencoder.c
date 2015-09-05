@@ -60,26 +60,30 @@
 #define	LED_DOWN	25
 #define	LED_UP		29
 
-#define DEBOUNCE_DELAY	500	// in microsecondes, 500 microsecondes seems ok
+#define DEBOUNCE_DELAY	0	// in microsecondes, 500 microsecondes seems ok
 
 // don't change these init values :
-int numberofencoders = 0 ;            // as writed, number of rotary encoders, will be modified by the code later
-int numberofbuttons = 0 ;             // as writed, number of axial buttons if any, will be modified by the code later
-int step = 0 ;                        // tri-state return variable from the "check_rotation_direction" function, -1, +1 if a step is valid, 0 if false, dubb, bounce
-int pre_step = 0 ;                    // previous value of "step", to check if the human operator has changed the rotation direction or not
-unsigned char step_was_modified = 0 ; // confirm that encoder has effectively "counted" one more step
-unsigned char previous_step = 3 ;     // prepositionning rotary encoder status switches status : the two A and B switches are open if no move
-unsigned char sequence ;              // encoder generates a complete 4 steps sequence or one step only (1/4 grey code sequence)
-int interrupt ;                       // which wire are we using for A-B rotary encoder and its axial switch if any
-unsigned long int now = 0 ;           // used as gap timer (for speed)
-unsigned long int lastupdate = 0 ;    // used as gap timer (for speed)
-unsigned long int now_2 = 0 ;         // for tests only, to see elementary step duration (1/4 grey code sequence)
-unsigned long int lastupdate_2 = 0 ;  // for tests only, to see elementary step duration (1/4 grey code sequence)
-unsigned long int now_3 = 0 ;         // used as debouncer timer
-unsigned long int lastupdate_3 = 0 ;  // used as debouncer timer
-unsigned long int gap = 0 ;           // used as gap timer (for speed)
-int speed = 1 ;                       // multiplier for rotation step acceleration if needed
-unsigned long int bounces = 0 ;       // cancelled bounces counter, for test/demo
+int numberofencoders = 0 ;				// as writed, number of rotary encoders, will be modified by the code later
+int numberofbuttons = 0 ;				// as writed, number of axial buttons if any, will be modified by the code later
+int step = 0 ;							// tri-state return variable from the "check_rotation_direction" function, -1, +1 if a step is valid, 0 if false, dubb, bounce
+int pre_step = 0 ;						// previous value of "step", to check if the human operator has changed the rotation direction or not
+unsigned char step_was_modified = 0 ;	// confirm that encoder has effectively "counted" one more step
+unsigned char previous_step = 3 ;		// prepositionning rotary encoder status switches status : the two A and B switches are open if no move
+unsigned char sequence ; 				// encoder generates a complete 4 steps sequence or one step only (1/4 grey code sequence)
+int interrupt ; 						// what wire are we using for A-B rotary encoder and its axial switch if any
+unsigned long int now = 0 ;				// used as gap timer (for speed)
+unsigned long int lastupdate = 0 ;		// used as gap timer (for speed)
+unsigned long int now_2 = 0 ;			// for tests only, to see elementary step duration (1/4 grey code sequence)
+unsigned long int lastupdate_2 = 0 ;	// for tests only, to see elementary step duration (1/4 grey code sequence)
+unsigned long int now_3 = 0 ; 			// used as debouncer timer
+unsigned long int lastupdate_3 = 0 ;	// used as debouncer timer
+unsigned long int gap = 0 ;				// used as second debouncer timer
+unsigned long int now_4 = 0 ;			// used as second debouncer timer
+unsigned long int lastupdate_4 = 0 ;	// used as gap timer (for speed)
+int speed = 1 ;							// multiplier for rotation step acceleration if needed
+unsigned long int bounces = 0 ;			// cancelled bounces counter, for test/demo
+
+unsigned char debugCounter ;
 
 struct encoder *lastEncoder ;
 struct encoder *currentEncoder ;
@@ -135,21 +139,38 @@ void updateOneEncoder(unsigned char interrupt)
 	
 	step = 0 ;	
 	lastupdate_2 = now_2 = micros() ; // start chrono 2 - step duration - 
-	now = micros() ; // mark elapsed time for chrono 1 - elaped time between two full sequences (or steps if 1/4 rotary encoder model) for "speed rotation"
-	now_3 = micros() ; 
+	now = micros() ; // mark elapsed time for chrono 1 - elaped time between two detends (or steps if 1/4 grey code sequence rotary encoder model) for "speed rotation"
+	now_3 = micros() ; // debounce timer elapsed time
+	now_4 = micros() ; // second debounce timer elapsed time
 	
-	if ( (now_3 - lastupdate_3) < DEBOUNCE_DELAY ) // debouncer time in microsecondes, 500 microsecondes seems ok
-	{	// debouncer, suppress a "too short too fast" false step
+	if ((now_3 - lastupdate_3) < DEBOUNCE_DELAY) // debouncer time in microsecondes, 500 microsecondes seems ok for my rotary encoders type
+	{ // debouncer, suppress a "too short too fast" false step (just a short tick under this very short time duration)
 		++bounces ;
-//		printf("timer: %8d - gap:%d < DEBOUNCE_DELAY => STOP PROCESSING - RESET TIMER - prev: %d - current: %d - step:  %d \n", now_3 - lastupdate_3, gap, previous_step, current_step, step) ;
 	}
 	else
 	{	// searching the one encoder which has triggered an interrupt
 		for (; encoder < encoders + numberofencoders ; encoder++)
 		{ 	// each rotary encoder is checked until found the good one
-		
+					
 			if ((encoder->pin_a == interrupt) || (encoder->pin_b == interrupt)) 
 			{	// found the correct encoder which is interrupting
+			
+				// secondary debouncing method, never twice same IRQ line
+				if ( (encoder->last_Pin == interrupt) || ((micros() - encoder->last_IRQ_a) == 0) || ((micros() - encoder->last_IRQ_b) == 0) )
+				{
+					++bounces ;
+					break ;
+				}
+				
+				encoder->last_Pin = interrupt ;
+				
+				// record IRQ line number into structure
+				if (encoder->pin_a == interrupt)
+					{ encoder->last_IRQ_a = micros() ; }
+				if (encoder->pin_b == interrupt)
+					{ encoder->last_IRQ_b = micros() ; }
+					
+				// if debounced only !			
 				int MSB = digitalRead(encoder->pin_a) ;
 				int LSB = digitalRead(encoder->pin_b) ;
 				current_step = (MSB << 1) | LSB ;
@@ -160,10 +181,19 @@ void updateOneEncoder(unsigned char interrupt)
 //					printf("timer!=0         => goto CHECK-DIRECTION \n") ;
 					check_rotation_direction (previous_step, current_step, encoder->sequence) ;
 //					printf("step:%2d          <= return from CHECK-DIRECTION \n", step) ;
+
+					now_2 = micros() ;
+					
 				}
 				break ; // found the correct encoder, exit from the loop, winning machine time
 			}
 		}
+		
+		++debugCounter ;
+/*		printf("#%-2d -IRQ:%d -last_IRQ_A:%-10d -last_IRQ_B:%-10d -debounce:%-10d -debounce#2:%-10d -gap:%-10d -timer2:%-10d -prev:%d -current:%d -step:%d\n",
+				debugCounter, interrupt, micros() - encoder->last_IRQ_a, micros() - encoder->last_IRQ_b, now_3 - lastupdate_3, now_4 - lastupdate_4, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
+*/		
+		
 		//--------------------------------------------------------------
 		// decreasing at lower speed if switched to another rotary encoder now
 		currentEncoder = encoder ;
@@ -177,6 +207,9 @@ void updateOneEncoder(unsigned char interrupt)
 			// mark elapsed time for chrono 1 (gap time now)
 			now = micros() ;
 			gap = (now - lastupdate) ;
+/*			printf("debounce timer: %-10d - gap:%-10d - timer2:%-10d - prev: %d - current: %d - step:  %d \n", 
+					now_3 - lastupdate_3, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
+*/
 			//----------------------------------------------------------
 			// 4 rotary encoder speeds : normal, fast, very fast, 
 			// hyper fast, and a short pause to reset to normal.
@@ -250,6 +283,7 @@ void updateOneEncoder(unsigned char interrupt)
 				}
 			}
 			// when step is realy modified/validated (-1 or 1) :
+			debugCounter = 0 ;
 			step_was_modified = 1 ;
 			pre_step = step ; // -1 or 1, depending rotation direction
 			previous_step = current_step ; // 4 possible binary values 00, 10, 00, 01
@@ -259,8 +293,9 @@ void updateOneEncoder(unsigned char interrupt)
 		// but not yet the "step" (-1, 1) as just top due to full sequence instead of 1/4 step
 		encoder->lastEncoded = current_step ;
 	}	
-	now_2 = micros() ; // top chrono 2 - step duration
+	now_2 = micros() ; // top chrono 2 - step duration elapsed time
 	lastupdate_3 = now_3 = micros() ; // reset/restart bounce timer
+	lastupdate_4 = now_4 = micros() ; // reset/start second debounce timer
 }
 //======================================================================
 int check_rotation_direction(unsigned char previous_step, unsigned char current_step, unsigned char sequence)
@@ -423,6 +458,9 @@ struct encoder *setupencoder(char *label, int pin_a, int pin_b, unsigned char se
 	newencoder->speed_Level_Multiplier_2 = speed_Level_Multiplier_2 ; // second speed level multiplier value
 	newencoder->speed_Level_Multiplier_3 = speed_Level_Multiplier_3 ; // third speed level multiplier value
 	newencoder->speed_Level_Multiplier_4 = speed_Level_Multiplier_4 ; // fourth speed level multiplier value
+	newencoder->last_IRQ_a = 0 ; // last time IRQ a
+	newencoder->last_IRQ_b = 0 ; // last time IRQ b
+	newencoder ->last_Pin = -1 ; // to avoid 0 at software starting
   
 	// Rotary encoder settings
 	pinMode(pin_a, INPUT) ;
