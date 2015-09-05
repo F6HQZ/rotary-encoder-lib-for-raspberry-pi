@@ -60,39 +60,39 @@
 
 #define max_buttons 17
 
-#define	ON	1
-#define	OFF	0
-#define UP 1
+#define	ON   1
+#define	OFF  0
+#define UP   1
 #define DOWN 0
-#define YES 1
-#define NO 0
-#define OUI	1
-#define	NON	0
+#define YES  1
+#define NO   0
+#define OUI  1
+#define	NON  0
 #define HIGH 1
-#define LOW 0
+#define LOW  0
 
 struct encoder
 {
-	char *label ;					// name or label as "Volume" or "Balance" or "Treble", etc...
-	int pin_a ; 					// which GPIO received the A pin from the rotary encoder
-	int pin_b ; 					// which GPIO received the B pin from the rotary encoder
-	unsigned char sequence ; 		// rotary encoder sends a complete 4 steps sequence (full cycle) or 1/4 cycle only per detent
-	unsigned char reverse ; 		// encoder much count or rotate in reverse 
-	unsigned char looping ;			// looping from one end to other when value limits are reached, from high_Limit to low_Limit and reverse
-	long int low_Limit ;			// max lowerst value, could be negative
-	long int high_Limit ;			// max higherst value, could be negative
-	volatile long int value ; 		// used to drive your solution, can be the starting default value or something in memory somewhere
+	char *label ;                   // name or label as "Volume" or "Balance" or "Treble", etc...
+	int pin_a ;                     // which GPIO received the A pin from the rotary encoder
+	int pin_b ;                     // which GPIO received the B pin from the rotary encoder
+	unsigned char sequence ;        // rotary encoder sends a complete 4 steps sequence (full cycle) or 1/4 cycle only per detent
+	unsigned char reverse ;         // encoder much count or rotate in reverse 
+	unsigned char looping ;         // looping from one end to other when value limits are reached, from high_Limit to low_Limit and reverse
+	long int low_Limit ;            // max lowerst value, could be negative
+	long int high_Limit ;           // max higherst value, could be negative
+	volatile long int value ;       // used to drive your solution, can be the starting default value or something in memory somewhere
 	volatile long int lastEncoded ; // memo to compare 2 consecutive steps binary values, don't modify
-	unsigned long int pause ; 		// pause time between gaps to reset rotary encoder speed level, in microsecondes
-	int speed_Level_Threshold_2 ;	// second speed shift level threshold value
-	int speed_Level_Threshold_3 ;	// third speed level threshold value
-	int speed_Level_Threshold_4 ;	// fourth speed level threshold value
-	int speed_Level_Multiplier_2 ;	// second speed level multiplier value
-	int speed_Level_Multiplier_3 ;	// third speed level multiplier value
-	int speed_Level_Multiplier_4 ;	// fourth speed level multiplier value
-	unsigned long int last_IRQ_a ;	// last time IRQ on pin_A
-	unsigned long int last_IRQ_b ;	// last time IRQ on pin_B
-	int last_Pin ;					// last pin which has been active
+	unsigned long int pause ;       // pause time between gaps to reset rotary encoder speed level, in microsecondes
+	int speed_Level_Threshold_2 ;   // second speed shift level threshold value
+	int speed_Level_Threshold_3 ;   // third speed level threshold value
+	int speed_Level_Threshold_4 ;   // fourth speed level threshold value
+	int speed_Level_Multiplier_2 ;  // second speed level multiplier value
+	int speed_Level_Multiplier_3 ;  // third speed level multiplier value
+	int speed_Level_Multiplier_4 ;  // fourth speed level multiplier value
+	unsigned long int last_IRQ_a ;  // last time IRQ on pin_A
+	unsigned long int last_IRQ_b ;  // last time IRQ on pin_B
+	int last_Pin ;                  // last pin which has been active
 };
 
 struct encoder encoders[max_encoders] ;
@@ -108,9 +108,9 @@ struct encoder *setupencoder(char *label, int pin_a, int pin_b, unsigned char se
 
 struct button
 {
-	char *label ;					// name or label as "Effect" or "Mute" or "+10dB", etc...
-	int pin ;						// which GPIO received the button wire
-	volatile long int value ;		// used to drive your solution, can be the starting default value or something in memory somewhere
+	char *label ;             // name or label as "Effect" or "Mute" or "+10dB", etc...
+	int pin ;                 // which GPIO received the button wire
+	volatile long int value ; // used to drive your solution, can be the starting default value or something in memory somewhere
 };
 
 struct button buttons[max_buttons] ;
