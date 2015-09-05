@@ -62,21 +62,21 @@
 
 #include "rotaryencoder.c"
 
-#define	ON		1
-#define	OFF		0
-#define UP 		1
-#define DOWN 	0
-#define YES 	1
-#define NO 		0
-#define OUI		1
-#define	NON		0
+#define	ON    1
+#define	OFF   0
+#define UP    1
+#define DOWN  0
+#define YES   1
+#define NO    0
+#define OUI   1
+#define	NON   0
 
 // used GPIO for 2 UP/DOWN monitor flashing LEDs (arbitrary, you can change as desired)
-#define	LED_DOWN	25
-#define	LED_UP		29
+#define	LED_DOWN  25
+#define	LED_UP    29
 
 // used PWM GPIO for LED dim demo with the first rotary encoder
-#define PWM_LED 	1
+#define PWM_LED   1
 // the first encoder is used to play with PWM_LED dim, "1" is mandatory: only one PWM output !
 
 extern int speed ;
@@ -93,15 +93,15 @@ int main(void)
 	enlighted for 2 sec at starting to check them, 
 	then when moving values up or down 
 */
-	pinMode (25,OUTPUT) ;			// output to drive LED
-	pinMode (29,OUTPUT) ;			// output to drive LED
-	digitalWrite (25,ON) ;			// ON
-	digitalWrite (29,ON) ;			// ON
+	pinMode (25,OUTPUT) ;           // output to drive LED
+	pinMode (29,OUTPUT) ;           // output to drive LED
+	digitalWrite (25,ON) ;          // ON
+	digitalWrite (29,ON) ;          // ON
 	pinMode (PWM_LED, PWM_OUTPUT) ; // pin 1 is the only one PWM capable pin on RapsberryPi pcb
-	pinMode (PWM_LED,1024) ; 		// Max bright value at starting
-	delay (2000) ;					// mS
-	digitalWrite (25,OFF) ;			// OFF
-	digitalWrite (29,OFF) ;			// OFF
+	pinMode (PWM_LED,1024) ;        // Max bright value at starting
+	delay (2000) ;                  // mS
+	digitalWrite (25,OFF) ;         // OFF
+	digitalWrite (29,OFF) ;         // OFF
  
 /*
  *  Please, see variables meaning in the rotaryencoder.c and rotaryencoder.h files
@@ -115,9 +115,9 @@ int main(void)
 	
 	// axial buttons (or any button) are there :
 	struct button *button = 
-	setupbutton("LUMIERE",7,1) ; 	// pin  7 and ON  at starting
-	setupbutton("GRAVE",21,0) ;		// pin 21 and OFF at starting
-	setupbutton("VOLUME",22,0) ;	// pin 22 and OFF at starting
+	setupbutton("LUMIERE",7,1) ; // pin  7 and ON  at starting
+	setupbutton("GRAVE",21,0) ;  // pin 21 and OFF at starting
+	setupbutton("VOLUME",22,0) ; // pin 22 and OFF at starting
 	
 	extern numberofencoders ;
 	extern numberofbuttons ;
