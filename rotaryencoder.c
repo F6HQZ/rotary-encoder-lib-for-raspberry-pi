@@ -63,25 +63,25 @@
 #define DEBOUNCE_DELAY	0	// in microsecondes, 500 microsecondes seems ok
 
 // don't change these init values :
-int numberofencoders = 0 ;				// as writed, number of rotary encoders, will be modified by the code later
-int numberofbuttons = 0 ;				// as writed, number of axial buttons if any, will be modified by the code later
-int step = 0 ;							// tri-state return variable from the "check_rotation_direction" function, -1, +1 if a step is valid, 0 if false, dubb, bounce
-int pre_step = 0 ;						// previous value of "step", to check if the human operator has changed the rotation direction or not
-unsigned char step_was_modified = 0 ;	// confirm that encoder has effectively "counted" one more step
-unsigned char previous_step = 3 ;		// prepositionning rotary encoder status switches status : the two A and B switches are open if no move
-unsigned char sequence ; 				// encoder generates a complete 4 steps sequence or one step only (1/4 grey code sequence)
-int interrupt ; 						// what wire are we using for A-B rotary encoder and its axial switch if any
-unsigned long int now = 0 ;				// used as gap timer (for speed)
-unsigned long int lastupdate = 0 ;		// used as gap timer (for speed)
-unsigned long int now_2 = 0 ;			// for tests only, to see elementary step duration (1/4 grey code sequence)
-unsigned long int lastupdate_2 = 0 ;	// for tests only, to see elementary step duration (1/4 grey code sequence)
-unsigned long int now_3 = 0 ; 			// used as debouncer timer
-unsigned long int lastupdate_3 = 0 ;	// used as debouncer timer
-unsigned long int gap = 0 ;				// used as second debouncer timer
-unsigned long int now_4 = 0 ;			// used as second debouncer timer
-unsigned long int lastupdate_4 = 0 ;	// used as gap timer (for speed)
-int speed = 1 ;							// multiplier for rotation step acceleration if needed
-unsigned long int bounces = 0 ;			// cancelled bounces counter, for test/demo
+int numberofencoders = 0 ;            // as writed, number of rotary encoders, will be modified by the code later
+int numberofbuttons = 0 ;             // as writed, number of axial buttons if any, will be modified by the code later
+int step = 0 ;                        // tri-state return variable from the "check_rotation_direction" function, -1, +1 if a step is valid, 0 if false, dubb, bounce
+int pre_step = 0 ;                    // previous value of "step", to check if the human operator has changed the rotation direction or not
+unsigned char step_was_modified = 0 ; // confirm that encoder has effectively "counted" one more step
+unsigned char previous_step = 3 ;     // prepositionning rotary encoder status switches status : the two A and B switches are open if no move
+unsigned char sequence ;              // encoder generates a complete 4 steps sequence or one step only (1/4 grey code sequence)
+int interrupt ;                       // what wire are we using for A-B rotary encoder and its axial switch if any
+unsigned long int now = 0 ;           // used as gap timer (for speed)
+unsigned long int lastupdate = 0 ;    // used as gap timer (for speed)
+unsigned long int now_2 = 0 ;         // for tests only, to see elementary step duration (1/4 grey code sequence)
+unsigned long int lastupdate_2 = 0 ;  // for tests only, to see elementary step duration (1/4 grey code sequence)
+unsigned long int now_3 = 0 ;         // used as debouncer timer
+unsigned long int lastupdate_3 = 0 ;  // used as debouncer timer
+unsigned long int gap = 0 ;           // used as second debouncer timer
+unsigned long int now_4 = 0 ;         // used as second debouncer timer
+unsigned long int lastupdate_4 = 0 ;  // used as gap timer (for speed)
+int speed = 1 ;                       // multiplier for rotation step acceleration if needed
+unsigned long int bounces = 0 ;       // cancelled bounces counter, for test/demo
 
 unsigned char debugCounter ;
 
