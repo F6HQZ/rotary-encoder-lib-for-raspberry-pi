@@ -1,6 +1,7 @@
 /* rotaryencoder.h :
  * Header for "rotaryencoder.c" LGPLv3 library for Raspberry Pi.
  * Needs its rotaryencoder.c file companion and "wiringPi" LPGLv3 lib.
+ * V1.1.0
  */
 
 /*=======================================================================\
@@ -16,6 +17,9 @@
 | in ther axe and use them as "objects" stored in structures. Like this, |
 | they are easy to read or modify values and specs from anywhere in your |
 | own software which must use them.                                      |
+|                                                                        |
+| A big effort has been done to supress any bounce or false action, for  |
+| all rotary encoders and switches pulses. This was my main focus.       |
 |                                                                        |
 | Thanks to friends who have supported me for this project and all guys  |
 | who have shared their own codes with the community.                    |
@@ -60,16 +64,16 @@
 
 #define max_buttons 17
 
-#define	ON   1
-#define	OFF  0
-#define UP   1
+#define	ON	1
+#define	OFF	0
+#define UP 1
 #define DOWN 0
-#define YES  1
-#define NO   0
-#define OUI  1
-#define	NON  0
+#define YES 1
+#define NO 0
+#define OUI	1
+#define	NON	0
 #define HIGH 1
-#define LOW  0
+#define LOW 0
 
 struct encoder
 {
@@ -93,6 +97,7 @@ struct encoder
 	unsigned long int last_IRQ_a ;  // last time IRQ on pin_A
 	unsigned long int last_IRQ_b ;  // last time IRQ on pin_B
 	int last_Pin ;                  // last pin which has been active
+	unsigned char active_flag ;     // already working on its status
 };
 
 struct encoder encoders[max_encoders] ;
@@ -108,9 +113,12 @@ struct encoder *setupencoder(char *label, int pin_a, int pin_b, unsigned char se
 
 struct button
 {
-	char *label ;             // name or label as "Effect" or "Mute" or "+10dB", etc...
-	int pin ;                 // which GPIO received the button wire
-	volatile long int value ; // used to drive your solution, can be the starting default value or something in memory somewhere
+	char *label ;                          // name or label as "Effect" or "Mute" or "+10dB", etc...
+	int pin ;                              // which GPIO received the button wire
+	volatile long int value ;              // used to drive your solution, can be the starting default value or something in memory somewhere
+	unsigned long int timestamp ;          // time when last state change occured (ON or OFF) to detect a loooonger push ON
+	unsigned long int previous_timestamp ; // time when previous state change occured (ON or OFF) to detect a loooonger push ON	
+	unsigned char active_flag ;            // already working on its status (to avoid loop reentrance for each bounce)
 };
 
 struct button buttons[max_buttons] ;
