@@ -419,7 +419,7 @@ void updateOneButton(unsigned char interrupt)
 					instant_status = digitalRead(button->pin) ;
 					
 					// Bounces Timers RESET
-					if ( (now_5 - lastupdate_5) > 50 )
+					if ( (now_5 - lastupdate_5) > 2000 ) // usual few tens, but seen rarely unitl 2000 !
 						{ 
 							starting_time = last_impulse_time = impulse_time = micros() ; 
 //							printf("\n > 50 ") ; 
