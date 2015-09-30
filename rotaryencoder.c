@@ -64,8 +64,8 @@
 #define	LED_DOWN	25
 #define	LED_UP		29
 
-#define ROTARY_DEBOUNCE_DELAY 0 // in microsecondes, 500 microsecondes seems ok
-#define BUTTON_DEBOUNCE_DELAY 0 // in microsecondes, 50 microsecondes seems ok
+#define ROTARY_DEBOUNCE_DELAY 0 // in microsecondes, 500 microsecondes seems ok, OPTIONAL
+#define BUTTON_DEBOUNCE_DELAY 0 // in microsecondes, 50 microsecondes seems ok, OPTIONAL
 
 // don't change these init values :
 int numberofencoders = 0 ;             // as writed, number of rotary encoders, will be modified by the code later
@@ -93,9 +93,9 @@ int speed = 1 ;                        // multiplier for rotation step accelerat
 unsigned long int bounces = 0 ;        // cancelled bounces counter, for test/demo
 unsigned long int starting_time = 0 ;  // start the debounce timer now
 unsigned char instant_status = 0 ;     // temporary button status during bounces
-unsigned char last_instant_status = 0 ;
+unsigned char last_instant_status = 0 ;// previous button status for comparison to check if bouncing
 unsigned long int impulse_time = 0 ;   // exact bounce time
-unsigned long int last_impulse_time = 0 ; // just the preview value
+unsigned long int last_impulse_time = 0 ; // just the preview time value, to know time before two status change
 unsigned char writeOk = 1 ;            // a flag which authorize the current values to be recorded in the objects structure
 
 struct encoder *lastEncoder ;
@@ -168,27 +168,33 @@ void updateOneEncoder(unsigned char interrupt)
 			if ((encoder->pin_a == interrupt) || (encoder->pin_b == interrupt)) 
 			{	// found the correct encoder which is interrupting
 			
-				// secondary debouncing method, never twice same IRQ line, need to pass a certain time between two steps before accept
+//				printf("#0 - IRQ:%d - encoder->last_Pin:%d - encoder->last_IRQ_a:%d - encoder->last_IRQ_b:%d \n", interrupt, encoder->last_Pin, micros() - encoder->last_IRQ_a, micros() - encoder->last_IRQ_b) ;
+				// secondary debouncing method : never twice same IRQ line, need to pass a certain time between two steps before accept
 				if ( (encoder->last_Pin == interrupt) || ((micros() - encoder->last_IRQ_a) == 0) || ((micros() - encoder->last_IRQ_b) == 0) )
 				{
+//					printf("BREAK #1 \n") ;
 					++bounces ;
 					break ;
 				}
 				
+				// from there, if debounced only !	
+				
 				encoder->last_Pin = interrupt ;
 				
-				// record IRQ line number into structure
+				// record IRQ lines last actvity time into structure
 				if (encoder->pin_a == interrupt)
 					{ encoder->last_IRQ_a = micros() ; }
 				if (encoder->pin_b == interrupt)
 					{ encoder->last_IRQ_b = micros() ; }
 					
-				// if debounced only !			
 				int MSB = digitalRead(encoder->pin_a) ;
 				int LSB = digitalRead(encoder->pin_b) ;
 				current_step = (MSB << 1) | LSB ;
-				previous_step = encoder->lastEncoded ; // read last state in memo
-
+				previous_step = encoder->lastEncoded ; // read last state in memory
+				
+/*				printf("IRQ:%d -last_IRQ_A:%-10d -last_IRQ_B:%-10d -debounce:%-10d -debounce#2:%-10d -gap:%-10d -timer2:%-10d -prev:%d -current:%d -step:%d\n",
+				interrupt, micros() - encoder->last_IRQ_a, micros() - encoder->last_IRQ_b, now_3 - lastupdate_3, now_4 - lastupdate_4, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
+*/
 				if(current_step != encoder->lastEncoded)
 				{ 	// sampled A & B values changed (suppress duplicated after bounce)
 //					printf("timer!=0         => goto CHECK-DIRECTION \n") ;
@@ -196,111 +202,113 @@ void updateOneEncoder(unsigned char interrupt)
 //					printf("step:%2d          <= return from CHECK-DIRECTION \n", step) ;
 
 					now_2 = micros() ;
-					
 				}
-				break ; // found the correct encoder, exit from the loop, winning machine time
-			}
-		}
-/*		printf("IRQ:%d -last_IRQ_A:%-10d -last_IRQ_B:%-10d -debounce:%-10d -debounce#2:%-10d -gap:%-10d -timer2:%-10d -prev:%d -current:%d -step:%d\n",
-				interrupt, micros() - encoder->last_IRQ_a, micros() - encoder->last_IRQ_b, now_3 - lastupdate_3, now_4 - lastupdate_4, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
-*/		
-		//--------------------------------------------------------------
-		// decreasing at lower speed if switched to another rotary encoder now
-		currentEncoder = encoder ;
-		if (lastEncoder != encoder) 
-			{ speed = 1 ; }
-		lastEncoder = encoder ;
-		//--------------------------------------------------------------		
-		// effective new value, can record "encoder->value" now
-		if (step != 0)
-		{			
-			// mark elapsed time for chrono 1 (gap time now)
-			now = micros() ;
-			gap = (now - lastupdate) ;
-/*			printf("debounce timer: %-10d - gap:%-10d - timer2:%-10d - prev: %d - current: %d - step:  %d \n", 
-					now_3 - lastupdate_3, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
-*/
-			//----------------------------------------------------------
-			// 4 rotary encoder speeds : normal, fast, very fast, 
-			// hyper fast, and a short pause to reset to normal.
-			// checked when a full sequence has been terminated only,
-			// verified by "step_was_modified" status.
-			if (step_was_modified)
-			{
-				if (gap > encoder->pause)
-					{ speed = 1 ; } // pause = speed reset
-				else if (gap < encoder->speed_Level_Threshold_4)
-					{ speed = encoder->speed_Level_Multiplier_4 ; }
-				else if (gap < encoder->speed_Level_Threshold_3)
-					{ speed = encoder->speed_Level_Multiplier_3 ; }
-				else if (gap < encoder->speed_Level_Threshold_2)
-					{ speed = encoder->speed_Level_Multiplier_2 ; }					
-				step_was_modified = 0 ;
-			}
-			//----------------------------------------------------------
-			if (pre_step != step)
-			{ // rotation direction changed, speed is changed to low level now
-				step_was_modified = 0 ;
-				speed = 1 ;
-			}
-			// check if limit value raised, in normal and reverse rotation direction then write the correct value in memory
-			if (encoder->reverse)
-			{
-				if ( ( (encoder->value + (speed * - step)) <= encoder->high_Limit ) && ( (encoder->value + (speed * - step)) >= encoder->low_Limit) )
-				{
-					encoder->value = encoder->value + (speed * - step) ;
-				} 
-				else
-				{
-					if (step == -1)
+
+		/*		printf("IRQ:%d -last_IRQ_A:%-10d -last_IRQ_B:%-10d -debounce:%-10d -debounce#2:%-10d -gap:%-10d -timer2:%-10d -prev:%d -current:%d -step:%d\n",
+						interrupt, micros() - encoder->last_IRQ_a, micros() - encoder->last_IRQ_b, now_3 - lastupdate_3, now_4 - lastupdate_4, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
+		*/		
+				//--------------------------------------------------------------
+				// decreasing at lower speed if switched to another rotary encoder now
+				currentEncoder = encoder ;
+				if (lastEncoder != encoder) 
+					{ speed = 1 ; }
+				lastEncoder = encoder ;
+				//--------------------------------------------------------------		
+				// effective new value, can record "encoder->value" now
+				if (step != 0)
+				{			
+					// mark elapsed time for chrono 1 (gap time now)
+					now = micros() ;
+					gap = (now - lastupdate) ;
+		/*			printf("debounce timer: %-10d - gap:%-10d - timer2:%-10d - prev: %d - current: %d - step:  %d \n", 
+							now_3 - lastupdate_3, gap, now_2 - lastupdate_2, previous_step, current_step, step) ;
+		*/
+					//----------------------------------------------------------
+					// 4 rotary encoder speeds : normal, fast, very fast, 
+					// hyper fast, and a short pause to reset to normal.
+					// checked when a full sequence has been terminated only,
+					// verified by "step_was_modified" status.
+					if (step_was_modified)
 					{
-						if (encoder->looping) 
-							{ encoder->value = encoder->low_Limit ; }
-						else 
-							{ encoder->value = encoder->high_Limit ; }
+						if (gap > encoder->pause)
+							{ speed = 1 ; } // pause = speed reset
+						else if (gap < encoder->speed_Level_Threshold_4)
+							{ speed = encoder->speed_Level_Multiplier_4 ; }
+						else if (gap < encoder->speed_Level_Threshold_3)
+							{ speed = encoder->speed_Level_Multiplier_3 ; }
+						else if (gap < encoder->speed_Level_Threshold_2)
+							{ speed = encoder->speed_Level_Multiplier_2 ; }					
+						step_was_modified = 0 ;
+					}
+					//----------------------------------------------------------
+					if (pre_step != step)
+					{ // rotation direction changed, speed is changed to low level now
+						step_was_modified = 0 ;
+						speed = 1 ;
+					}
+					// check if limit value raised, in normal and reverse rotation direction then write the correct value in memory
+					if (encoder->reverse)
+					{
+						if ( ( (encoder->value + (speed * - step)) <= encoder->high_Limit ) && ( (encoder->value + (speed * - step)) >= encoder->low_Limit) )
+						{
+							encoder->value = encoder->value + (speed * - step) ;
+						} 
+						else
+						{
+							if (step == -1)
+							{
+								if (encoder->looping) 
+									{ encoder->value = encoder->low_Limit ; }
+								else 
+									{ encoder->value = encoder->high_Limit ; }
+							}
+							else
+							{
+								if (encoder->looping)
+									{ encoder->value = encoder->high_Limit ; }
+								else
+									{ encoder->value = encoder->low_Limit ;	}
+							}
+						}
 					}
 					else
 					{
-						if (encoder->looping)
-							{ encoder->value = encoder->high_Limit ; }
+						if ( ( (encoder->value + (speed * step)) <= encoder->high_Limit ) && ( (encoder->value + (speed * step)) >= encoder->low_Limit ) )
+						{
+							encoder->value = encoder->value + (speed * step) ;
+						}
 						else
-							{ encoder->value = encoder->low_Limit ;	}
+						{
+							if (step == -1)
+							{
+								if (encoder->looping)
+									{ encoder->value = encoder->high_Limit ; }
+								else
+									{ encoder->value = encoder->low_Limit ; }
+							}
+							else
+							{
+								if (encoder->looping)
+									{ encoder->value = encoder->low_Limit ; }
+								else
+									{ encoder->value = encoder->high_Limit ; }
+							}
+						}
 					}
+					// when step is realy modified/validated (-1 or 1) :
+					step_was_modified = 1 ;
+					pre_step = step ; // -1 or 1, depending rotation direction
+					previous_step = current_step ; // only 4 possible binary values 00, 10, 00, 01
+					lastupdate = now = micros() ; // reset/start speed rotate timer (for gap/encoder rotation speed measurement)
 				}
+				// when the binary value (current_step: 00, 10, 00, 01) is modified 
+				// but not yet the "step" (-1, 1) as just top due to full sequence instead of 1/4 step
+				encoder->lastEncoded = current_step ;		
+				break ; // found the correct encoder, exit from the loop, winning CPU time
 			}
-			else
-			{
-				if ( ( (encoder->value + (speed * step)) <= encoder->high_Limit ) && ( (encoder->value + (speed * step)) >= encoder->low_Limit ) )
-				{
-					encoder->value = encoder->value + (speed * step) ;
-				}
-				else
-				{
-					if (step == -1)
-					{
-						if (encoder->looping)
-							{ encoder->value = encoder->high_Limit ; }
-						else
-							{ encoder->value = encoder->low_Limit ; }
-					}
-					else
-					{
-						if (encoder->looping)
-							{ encoder->value = encoder->low_Limit ; }
-						else
-							{ encoder->value = encoder->high_Limit ; }
-					}
-				}
-			}
-			// when step is realy modified/validated (-1 or 1) :
-			step_was_modified = 1 ;
-			pre_step = step ; // -1 or 1, depending rotation direction
-			previous_step = current_step ; // 4 possible binary values 00, 10, 00, 01
-			lastupdate = now = micros() ; // reset/start speed rotate timer (for gap/encoder rotation speed measurement)
 		}
-		// when the binary value (current_step: 00, 10, 00, 01) is modified 
-		// but not yet the "step" (-1, 1) as just top due to full sequence instead of 1/4 step
-		encoder->lastEncoded = current_step ;
+
+//		printf("encoder->lastEncoded = %d current_step = %d \n", encoder->lastEncoded, current_step) ;
 	}	
 	now_2 = micros() ; // top chrono 2 - step duration elapsed time
 	lastupdate_3 = now_3 = micros() ; // reset/restart bounce timer
@@ -415,20 +423,20 @@ void updateOneButton(unsigned char interrupt)
 				if (button->active_flag != 1)
 				{  // not yet working with it	
 					button->active_flag = 1 ;  // lock it, alone to work with 
-					
 					instant_status = digitalRead(button->pin) ;
-					
+//					printf("\nflag=1") ;
+										
 					// Bounces Timers RESET
-					if ( (now_5 - lastupdate_5) > 2000 ) // usual few tens, but seen rarely unitl 2000 !
+					if ( (now_5 - lastupdate_5) > 2000 )  // usual few tens, but seen rarely until 2000 !
 						{ 
 							starting_time = last_impulse_time = impulse_time = micros() ; 
-//							printf("\n > 50 ") ; 
 							writeOk = 1 ;
+//							printf("\n > 2000 =%d \n",now_5 - lastupdate_5) ; 
 						}
 					else
 						{ 
-//							printf("\n < 50 ") ; 
 							writeOk = 0 ;
+//							printf("\n < 2000 = %d \n",now_5 - lastupdate_5) ; 
 						}
 						
 					do 
@@ -440,7 +448,7 @@ void updateOneButton(unsigned char interrupt)
 						}
 						if (micros() - starting_time > 100000) 
 						{ 
-//							printf("\n !!! PLAN B timer terminated !!! \n") ;
+//							printf("\n !!! watchdog PLAN B timer terminated !!! \n") ;
 							break ; 
 						}
 						if (instant_status != digitalRead(button->pin) || instant_status != last_instant_status || last_instant_status != digitalRead(button->pin))
@@ -672,5 +680,3 @@ struct button *setupbutton(char *label, int pin, long int value)
 	}
 	return newbutton ;
 }
-
-
