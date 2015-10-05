@@ -325,14 +325,24 @@ int check_rotation_direction(unsigned char previous_step, unsigned char current_
 			switch (previous_step)
 			{
 				case 1:
-					if (sequence) { step = 0 ; } else { step = 1 ;} ;
-					digitalWrite (LED_UP, ON) ;		// On
-					digitalWrite (LED_DOWN, OFF) ;	// Off
+					if (sequence) 
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = 1 ;
+						digitalWrite(LED_UP, ON) ; // ON
+						digitalWrite (LED_DOWN, OFF) ;	// OFF
+					}
 					break ;
 				case 2:
-					if (sequence) { step = 0 ; } else { step = -1 ;} ;
-					digitalWrite (LED_DOWN, ON) ;	// On
-					digitalWrite (LED_UP, OFF) ;	// Off
+					if (sequence) 
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = -1 ;
+						digitalWrite (LED_DOWN, ON) ;	// ON
+						digitalWrite (LED_UP, OFF) ;	// OFF
+					}
 					break ;
 				default:
 					break ;
@@ -343,14 +353,25 @@ int check_rotation_direction(unsigned char previous_step, unsigned char current_
 			switch (previous_step)
 			{
 				case 0:
-					if (sequence) { step = 0 ; } else { step = -1 ;} ;
-					digitalWrite (LED_DOWN, ON) ;	// On
-					digitalWrite (LED_UP, OFF) ;	// Off
+					if (sequence)
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = -1 ;
+						digitalWrite (LED_DOWN, ON) ;	// ON
+						digitalWrite (LED_UP, OFF) ;	// OFF
+					}
+
 					break ;
 				case 3:
-					if (sequence) { step = 0 ; } else { step = 1 ;} ;
-					digitalWrite (LED_UP, ON) ;		// On
-					digitalWrite (LED_DOWN, OFF) ;	// Off
+					if (sequence) 
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = 1 ;
+						digitalWrite (LED_UP, ON) ;	// ON
+						digitalWrite (LED_DOWN, OFF) ;	// OFF
+					}
 					break ;
 				default:
 					break ;
@@ -361,14 +382,25 @@ int check_rotation_direction(unsigned char previous_step, unsigned char current_
 			switch (previous_step)
 			{
 				case 0:
-					if (sequence) { step = 0 ; } else { step = 1 ;} ;
-					digitalWrite (LED_UP, ON) ;		// On
-					digitalWrite (LED_DOWN, OFF) ;	// Off
+					if (sequence) 
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = 1 ;
+						digitalWrite (LED_UP, ON) ;	// ON
+						digitalWrite (LED_DOWN, OFF) ;	// OFF
+					}
 					break ;
 				case 3:
-					if (sequence) { step = 0 ; } else { step = -1 ;} ;
-					digitalWrite (LED_DOWN, ON) ;	// On
-					digitalWrite (LED_UP, OFF) ;	// Off
+					if (sequence) 
+						{ step = 0 ; } 
+					else 
+					{ 
+						step = -1 ;
+						digitalWrite (LED_DOWN, ON) ;	// ON
+						digitalWrite (LED_UP, OFF) ;	// OFF
+					} 
+					
 					break ;
 				default:
 					break ;
@@ -479,8 +511,8 @@ void updateOneButton(unsigned char interrupt)
 //		printf("IRQ:%d -now5-lastupd5:%-10d - now5-button->timestamp:%-10d - now6-lastupd6:%-10d - now6-button->timestamp:%-10d - button->value:%d(%d) - duration:%d \n", interrupt, now_5 - lastupdate_5, now_5 - button->timestamp, now_6 - lastupdate_6, now_6 - button->timestamp, button->value, digitalRead(button->pin), button->timestamp - button->previous_timestamp) ;
 				
 //		just for the fun during tests
-		digitalWrite (LED_DOWN, ON) ;	// On
-		digitalWrite (LED_UP, ON) ;		// On
+		digitalWrite (LED_DOWN, ON) ;	// ON
+		digitalWrite (LED_UP, ON) ;	// ON
 	}	
 	lastupdate_5 = micros() ; // reset/start (gap measurement)
 }
