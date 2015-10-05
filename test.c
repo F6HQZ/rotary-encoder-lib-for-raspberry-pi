@@ -1,6 +1,7 @@
 /* test.c :
  * Permits to test the "rotaryencoder" library.
  * No more interest, except curiosity or learning.
+ * V.1.2.0
  */
 
 /*=======================================================================\
@@ -122,11 +123,9 @@ int main(void)
 	extern numberofencoders ;
 	extern numberofbuttons ;
 	
-	long int memo_rotary[numberofencoders] ; 
-	long int value_rotary[numberofencoders] ;
-	long int memo_button[numberofbuttons] ;
-	long int value_button[numberofbuttons] ;
-	
+	long int memo_rotary[numberofencoders] ; // record the rotary encoder value for modification detection later
+	long int memo_button[numberofbuttons] ; // record the button value for modification detection later
+
 	printf("\nROTARY ENCODERS list :\n\n-----------------\n") ;
 	for (; encoder < encoders + numberofencoders ; encoder++)
 	{
@@ -145,38 +144,39 @@ int main(void)
 	while (1)
 	{
 		delay (10) ; // 10 ms default, decreases the loop speed (and the CPU load from about 25% to minus than 0.3%)
-		digitalWrite (LED_DOWN, OFF) ;	// Off
-		digitalWrite (LED_UP, OFF) ; 	// Off
+		digitalWrite (LED_DOWN, OFF) ;	// OFF
+		digitalWrite (LED_UP, OFF) ; 	// OFF
 
 		int step = 0 ;
 		unsigned char print = 0 ;
-		
+
+		// check if any rotary encoder modified value		
 		struct encoder *encoder = encoders ;
 		for (; encoder < encoders + numberofencoders ; encoder++)
 		{
-			memo_rotary[step] = encoder->value ;
-			if (memo_rotary[step] != value_rotary[step])
+			if (encoder->value != memo_rotary[step])
 			{	
 				print = 1 ;
-				value_rotary[step] = memo_rotary[step] ;
+				memo_rotary[step] = encoder->value ;
 			}	
 			++step ;	
 		} 
 		
 		step = 0 ;
-		
+	
+		// check if any button modified value	
 		struct button *button = buttons ;
 		for (; button < buttons + numberofbuttons ; button++)
 		{
-			memo_button[step] = button->value ;
-			if (memo_button[step] != value_button[step])
+			if (button->value != memo_button[step])
 			{	
 				print = 1 ;
-				value_button[step] = memo_button[step] ;
+				memo_button[step] = button->value ;
 			}	
 			++step ;	
 		}
 		
+		// and if any value modified, then display the new value (and all others too)
 		if (print) 
 		{
 			struct encoder *encoder = encoders ;
